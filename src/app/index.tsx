@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -24,7 +24,19 @@ export default function HomeScreen() {
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
   const [trips, setTrips] = useState<Trip[]>([]);
+useEffect(() => {
+  const loadSavedTrips = async () => {
+    try {
+      const savedTrips = await getTrips();
+      setTrips(savedTrips);
+    } catch (error) {
+      console.error('Error loading trips:', error);
+      Alert.alert('Error', 'Could not load your saved trips.');
+    }
+  };
 
+  loadSavedTrips();
+}, []);
   
 const createTrip = async () => {
   if (!destination.trim() || !startDate.trim() || !endDate.trim()) {
