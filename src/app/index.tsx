@@ -10,14 +10,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import {
+  getTrips,
+  saveTrip,
+  type Trip
+} from '../database/database';
 
-type Trip = {
-  id: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-};
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -27,21 +25,23 @@ export default function HomeScreen() {
   const [description, setDescription] = useState('');
   const [trips, setTrips] = useState<Trip[]>([]);
 
-  const createTrip = () => {
-    if (!destination.trim() || !startDate.trim() || !endDate.trim()) {
-      Alert.alert('Missing details', 'Please enter destination and both dates.');
-      return;
-    }
+  
+const createTrip = async () => {
+  if (!destination.trim() || !startDate.trim() || !endDate.trim()) {
+    Alert.alert('Missing details', 'Please enter destination and both dates.');
+    return;
+  }
 
-    const newTrip: Trip = {
-      id: Date.now().toString(),
-      destination: destination.trim(),
-      startDate: startDate.trim(),
-      endDate: endDate.trim(),
-      description: description.trim(),
-    };
+  try {
+    await saveTrip(
+      destination.trim(),
+      startDate.trim(),
+      endDate.trim(),
+      description.trim()
+    );
 
-    setTrips((currentTrips) => [...currentTrips, newTrip]);
+    const savedTrips = await getTrips();
+    setTrips(savedTrips);
 
     setDestination('');
     setStartDate('');
@@ -49,8 +49,13 @@ export default function HomeScreen() {
     setDescription('');
     setModalVisible(false);
 
-    Alert.alert('Success!', 'Your trip has been created.');
-  };
+    Alert.alert('Success!', 'Your trip has been saved.');
+  } catch (error) {
+    console.error('Error saving trip:', error);
+    Alert.alert('Error', 'Could not save your trip. Please try again.');
+  }
+};
+
 
   return (
     <ScrollView style={styles.container}>
