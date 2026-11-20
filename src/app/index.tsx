@@ -11,8 +11,10 @@ import {
   View,
 } from 'react-native';
 import {
+  deleteTrip,
   getTrips,
   saveTrip,
+  updateTrip,
   type Trip
 } from '../database/database';
 
@@ -24,6 +26,7 @@ export default function HomeScreen() {
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [editingTripId, setEditingTripId] = useState<number | null>(null);
 useEffect(() => {
   const loadSavedTrips = async () => {
     try {
@@ -45,12 +48,22 @@ const createTrip = async () => {
   }
 
   try {
-    await saveTrip(
-      destination.trim(),
-      startDate.trim(),
-      endDate.trim(),
-      description.trim()
-    );
+    if (editingTripId !== null) {
+      await updateTrip(
+        editingTripId,
+        destination.trim(),
+        startDate.trim(),
+        endDate.trim(),
+        description.trim()
+      );
+    } else {
+      await saveTrip(
+        destination.trim(),
+        startDate.trim(),
+        endDate.trim(),
+        description.trim()
+      );
+    }
 
     const savedTrips = await getTrips();
     setTrips(savedTrips);
@@ -59,16 +72,53 @@ const createTrip = async () => {
     setStartDate('');
     setEndDate('');
     setDescription('');
+    setEditingTripId(null);
     setModalVisible(false);
 
-    Alert.alert('Success!', 'Your trip has been saved.');
+    Alert.alert(
+      'Success!',
+      editingTripId !== null
+        ? 'Your trip has been updated.'
+        : 'Your trip has been saved.'
+    );
   } catch (error) {
     console.error('Error saving trip:', error);
     Alert.alert('Error', 'Could not save your trip. Please try again.');
   }
 };
-
-
+const startEditingTrip = (trip: Trip) => {
+  setEditingTripId(trip.id);
+  setDestination(trip.destination);
+  setStartDate(trip.startDate);
+  setEndDate(trip.endDate);
+  setDescription(trip.description);
+  setModalVisible(true);
+};
+const confirmDeleteTrip = (trip: Trip) => {
+  Alert.alert(
+    'Delete Trip',
+    `Are you sure you want to delete ${trip.destination}?`,
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteTrip(trip.id);
+            const savedTrips = await getTrips();
+            setTrips(savedTrips);
+          } catch (error) {
+            Alert.alert('Error', 'Could not delete this trip.');
+          }
+        },
+      },
+    ]
+  );
+};
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -118,6 +168,12 @@ const createTrip = async () => {
               <Text style={styles.tripDescription}>
                 {trip.description || 'Your next adventure awaits!'}
               </Text>
+              <Pressable onPress={() => startEditingTrip(trip)}>
+  <Text>Edit Trip</Text>
+</Pressable>
+              <Pressable onPress={() => confirmDeleteTrip(trip)}>   
+                <Text>Delete Trip</Text>
+              </Pressable>
             </View>
           ))
         )}
@@ -183,7 +239,9 @@ const createTrip = async () => {
                 style={styles.saveButton}
                 onPress={createTrip}
               >
-                <Text style={styles.saveButtonText}>Save My Trip</Text>
+                <Text style={styles.saveButtonText}>
+  {editingTripId !== null ? 'Update Trip' : 'Save My Trip'}
+</Text>
               </Pressable>
 
               <Pressable

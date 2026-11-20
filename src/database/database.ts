@@ -54,3 +54,31 @@ export async function getTrips(): Promise<Trip[]> {
     'SELECT * FROM trips ORDER BY id DESC'
   );
 }
+export async function updateTrip(
+  id: number,
+  destination: string,
+  startDate: string,
+  endDate: string,
+  description: string
+) {
+  const db = await getDatabase();
+
+  await db.runAsync(
+    `UPDATE trips
+     SET destination = ?, startDate = ?, endDate = ?, description = ?
+     WHERE id = ?`,
+    destination,
+    startDate,
+    endDate,
+    description,
+    id
+  );
+}
+export async function deleteTrip(id: number) {
+  const db = await getDatabase();
+
+  await db.runAsync(
+    'DELETE FROM trips WHERE id = ?',
+    id
+  );
+}
