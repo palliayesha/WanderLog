@@ -168,12 +168,21 @@ const confirmDeleteTrip = (trip: Trip) => {
               <Text style={styles.tripDescription}>
                 {trip.description || 'Your next adventure awaits!'}
               </Text>
-              <Pressable onPress={() => startEditingTrip(trip)}>
-  <Text>Edit Trip</Text>
-</Pressable>
-              <Pressable onPress={() => confirmDeleteTrip(trip)}>   
-                <Text>Delete Trip</Text>
-              </Pressable>
+              <View style={styles.actionButtons}>
+  <Pressable
+    style={styles.editButton}
+    onPress={() => startEditingTrip(trip)}
+  >
+    <Text style={styles.editButtonText}>Edit Trip</Text>
+  </Pressable>
+
+  <Pressable
+    style={styles.deleteButton}
+    onPress={() => confirmDeleteTrip(trip)}
+  >
+    <Text style={styles.deleteButtonText}>Delete Trip</Text>
+  </Pressable>
+</View>
             </View>
           ))
         )}
@@ -344,11 +353,49 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   tripCard: {
-    backgroundColor: '#E8E6D9',
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 14,
+  backgroundColor: '#FFFFFF',
+  padding: 20,
+  borderRadius: 20,
+  marginBottom: 18,
+  borderWidth: 1,
+  borderColor: '#E8E6D9',
+  elevation: 3,
+  shadowColor: '#253C35',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.08,
+  shadowRadius: 8,
   },
+  actionButtons: {
+  flexDirection: 'row',
+  gap: 12,
+  marginTop: 16,
+},
+
+editButton: {
+  flex: 1,
+  backgroundColor: '#245B50',
+  padding: 12,
+  borderRadius: 10,
+  alignItems: 'center',
+},
+
+editButtonText: {
+  color: '#FFFFFF',
+  fontWeight: 'bold',
+},
+
+deleteButton: {
+  flex: 1,
+  backgroundColor: '#F3E4DF',
+  padding: 12,
+  borderRadius: 10,
+  alignItems: 'center',
+},
+
+deleteButtonText: {
+  color: '#A34435',
+  fontWeight: 'bold',
+},
   tripName: {
     fontSize: 19,
     fontWeight: 'bold',
