@@ -1,5 +1,8 @@
 
 import { useEffect, useState } from 'react';
+import { onAuthStateChanged, type User } from 'firebase/auth';
+import { auth } from '../services/firebase';
+import { login, signUp, logout } from '../services/auth';
 import {
   Alert,
   Modal,
@@ -20,6 +23,10 @@ import {
 
 
 export default function HomeScreen() {
+  const [user, setUser] = useState<User | null>(null);
+  const [email, setEmail] = useState('');
+const [password, setPassword] = useState('');
+const [isSignUp, setIsSignUp] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [destination, setDestination] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -40,7 +47,34 @@ useEffect(() => {
 
   loadSavedTrips();
 }, []);
-  
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setUser(currentUser);
+  });
+
+  return unsubscribe;
+}, []);
+
+
+  const handleAuthentication = async () => {
+  if (!email.trim() || !password.trim()) {
+    Alert.alert('Missing details', 'Please enter your email and password.');
+    return;
+  }
+
+  try {
+    if (isSignUp) {
+      await signUp(email.trim(), password);
+      Alert.alert('Success', 'Your account has been created!');
+    } else {
+      await login(email.trim(), password);
+    }
+  } catch (error: any) {
+    Alert.alert('Authentication Error', error.message);
+  }
+};
+
 const createTrip = async () => {
   if (!destination.trim() || !startDate.trim() || !endDate.trim()) {
     Alert.alert('Missing details', 'Please enter destination and both dates.');
@@ -119,7 +153,54 @@ const confirmDeleteTrip = (trip: Trip) => {
     ]
   );
 };
+if (!user) {
   return (
+    <View style={styles.container}>
+      <Text style={styles.logo}>✈ WanderLog</Text>
+      <Text style={styles.tagline}>YOUR JOURNEY, YOUR STORY</Text>
+
+      <Text style={styles.heroTitle}>
+        {isSignUp ? 'Create Account' : 'Welcome Back'}
+      </Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Email address"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      <Pressable
+        style={styles.createButton}
+        onPress={handleAuthentication}
+      >
+        <Text style={styles.createButtonText}>
+          {isSignUp ? 'Create Account' : 'Login'}
+        </Text>
+      </Pressable>
+
+      <Pressable onPress={() => setIsSignUp(!isSignUp)}>
+        <Text style={styles.footerText}>
+          {isSignUp
+            ? 'Already have an account? Login'
+            : 'New here? Create an account'}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.logo}>✈ WanderLog</Text>
