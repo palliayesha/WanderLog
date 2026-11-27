@@ -17,6 +17,13 @@ export type ItineraryItem = {
   activityDate: string;
   notes: string;
 };
+export type JournalEntry = {
+  id: number;
+  tripId: number;
+  imageUri: string;
+  caption: string;
+  createdAt: string;
+};
 
 let database: SQLite.SQLiteDatabase | null = null;
 
@@ -40,6 +47,15 @@ export async function getDatabase() {
     activity TEXT NOT NULL,
     activityDate TEXT NOT NULL,
     notes TEXT
+  );
+`);
+await database.execAsync(`
+  CREATE TABLE IF NOT EXISTS journal (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tripId INTEGER NOT NULL,
+    imageUri TEXT NOT NULL,
+    caption TEXT,
+    createdAt TEXT
   );
 `);
   }
@@ -288,4 +304,38 @@ export async function deleteTrip(id: number) {
       console.warn('Cloud deletion failed:', error);
     }
   }
+}
+export async function saveJournalEntry(
+  tripId: number,
+  imageUri: string,
+  caption: string
+) {
+  const db = await getDatabase();
+
+  await db.runAsync(
+    `INSERT INTO journal (tripId, imageUri, caption, createdAt)
+     VALUES (?, ?, ?, ?)`,
+    tripId,
+    imageUri,
+    caption,
+    new Date().toISOString()
+  );
+}
+export async function getJournalEntries(
+  tripId: number
+): Promise<JournalEntry[]> {
+  const db = await getDatabase();
+
+  return await db.getAllAsync<JournalEntry>(
+    'SELECT * FROM journal WHERE tripId = ? ORDER BY id DESC',
+    tripId
+  );
+}
+export async function deleteJournalEntry(id: number) {
+  const db = await getDatabase();
+
+  await db.runAsync(
+    'DELETE FROM journal WHERE id = ?',
+    id
+  );
 }

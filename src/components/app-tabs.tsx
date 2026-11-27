@@ -15,6 +15,12 @@ export default function AppTabs() {
         name="itinerary"
         options={{ title: 'Itinerary' }}
       />
+      
+      <Tabs.Screen
+        name="journal" 
+        options={{ title: 'Journal' }}
+         />
     </Tabs>
   );
 }
+  
